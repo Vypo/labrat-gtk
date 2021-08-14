@@ -16,7 +16,6 @@ use gettextrs::TextDomain;
 use gtk::prelude::*;
 
 use std::cell::RefCell;
-use std::env::args;
 use std::rc::Rc;
 
 const QUALIFIER: &'static str = "dev.vypo.labrat-gtk";
@@ -29,8 +28,7 @@ pub fn main() {
         .ok();
 
     let application =
-        gtk::Application::new(Some(QUALIFIER), Default::default())
-            .expect("Initialization failed...");
+        gtk::Application::new(Some(QUALIFIER), Default::default());
 
     let bridge = Bridge::spawn();
     let root_ui: Rc<RefCell<Option<ptr::Owned<Root>>>> = Default::default();
@@ -44,6 +42,7 @@ pub fn main() {
         glib::MainContext::default().spawn(async move {
             // TODO: Make login screen and move getting secrets onto a thread.
             let secrets = Secrets::new().unwrap();
+            secrets.set("b=90f6c627-b546-493b-a3f3-47cfb8a11107; a=94ad66cd-03fc-40c3-9f66-65539769fb23").unwrap();
             let cookie = secrets.get().unwrap().unwrap();
             clone.login(&cookie).await.unwrap();
         });
@@ -60,7 +59,7 @@ pub fn main() {
         }
     });
 
-    application.run(&args().collect::<Vec<_>>());
+    application.run();
     drop(root_ui);
     bridge.join();
 }

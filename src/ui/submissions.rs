@@ -80,6 +80,8 @@ mod imp_widget {
             box_.append(&avatar);
             box_.append(&thumbnail);
 
+            thumbnail.show();
+
             let widgets = SubmissionListItemWidgets {
                 box_,
                 thumbnail,
@@ -123,7 +125,7 @@ mod imp_widget {
 
             if let Some(parent) = self.weak.borrow().upgrade() {
                 // Fetch the avatar.
-                let inst = self.get_instance().downgrade();
+                let inst = self.instance().downgrade();
                 let avatar_uri = submission.artist().avatar().to_string();
 
                 let util = parent.util.clone();
@@ -142,7 +144,7 @@ mod imp_widget {
                 });
 
                 // Fetch the thumbnail.
-                let inst = self.get_instance().downgrade();
+                let inst = self.instance().downgrade();
                 let util = parent.util.clone();
                 parent.util.spawn_local(async move {
                     let thumb = submission.preview(PreviewSize::Xl);
@@ -295,15 +297,15 @@ impl Submissions {
         });
 
         factory.connect_bind(|_, list_item| {
-            let child = list_item.get_child().unwrap();
-            let item = list_item.get_item().unwrap();
+            let child = list_item.child().unwrap();
+            let item = list_item.item().unwrap();
             let widget: SubmissionListItem = child.downcast().unwrap();
             let sub: &ListSubmission = item.downcast_ref().unwrap();
             widget.set_submission(Some(sub.submission().clone()));
         });
 
         factory.connect_unbind(|_, item| {
-            if let Some(child) = item.get_child() {
+            if let Some(child) = item.child() {
                 let _widget: SubmissionListItem = child.downcast().unwrap();
                 // Rows are bound/unbound as they are selected, so clearing the
                 // binding doesn't make sense?

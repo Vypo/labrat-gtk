@@ -78,7 +78,7 @@ where
     }
 
     pub fn len(&self) -> u32 {
-        self.list_store.get_n_items()
+        self.list_store.n_items()
     }
 
     fn on_notify_vadjustment<F>(&self, fetch: &Rc<F>)
@@ -89,7 +89,7 @@ where
             vadj.disconnect(handler_id);
         }
 
-        if let Some(vadj) = self.list_view.get_vadjustment() {
+        if let Some(vadj) = self.list_view.vadjustment() {
             let fetch_clone = fetch.clone();
             let weak = self.weak();
 
@@ -100,8 +100,8 @@ where
                         return;
                     }
 
-                    let max = vadj.get_upper() - vadj.get_page_size();
-                    if vadj.get_value() >= max - this.end_diff {
+                    let max = vadj.upper() - vadj.page_size();
+                    if vadj.value() >= max - this.end_diff {
                         fetch_clone(this);
                     }
                 }

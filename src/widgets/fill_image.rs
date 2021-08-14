@@ -4,6 +4,7 @@ use gtk::prelude::*;
 use gtk::subclass::prelude::*;
 
 use std::cell::RefCell;
+use std::convert::TryFrom;
 
 mod imp {
     use super::*;
@@ -11,6 +12,7 @@ mod imp {
     #[derive(Debug, Default, Clone)]
     pub struct FillImage {
         area: gtk::DrawingArea,
+        //btn: gtk::Button,
         pixbuf: RefCell<Option<gdk_pixbuf::Pixbuf>>,
     }
 
@@ -34,7 +36,7 @@ mod imp {
             height: i32,
         ) {
             // TODO: Clear the screen if no pixbuf
-            let parent = match area.get_parent() {
+            let parent = match area.parent() {
                 Some(p) => p,
                 None => return,
             };
@@ -50,30 +52,35 @@ mod imp {
             let h_s = height as f64;
             let w_s = width as f64;
 
-            let h_p = pixbuf.get_height() as f64;
-            let w_p = pixbuf.get_width() as f64;
+            let h_p = pixbuf.height() as f64;
+            let w_p = pixbuf.width() as f64;
 
-            let r_s = w_s / h_s;
-            let r_p = w_p / h_p;
+            let r_s = h_s / w_s;
+            let r_p = h_p / w_p;
 
             let src_width;
             let src_height;
 
-            if r_s > r_p {
-                src_width = pixbuf.get_width();
+            if r_p > r_s {
+                src_width = pixbuf.width();
                 src_height = (r_s * w_p) as i32;
             } else {
-                src_height = pixbuf.get_height();
+                src_height = pixbuf.height();
                 src_width = (r_s * h_p) as i32;
             }
 
-            let src =
-                pixbuf.new_subpixbuf(0, 0, src_width, src_height).unwrap();
+            if src_width > pixbuf.width() || src_height > pixbuf.height() {
+                panic!("aoeu");
+            }
+            let src = pixbuf.new_subpixbuf(0, 0, src_width, src_height).unwrap();
+
             let scaled =
                 src.scale_simple(width, height, gdk_pixbuf::InterpType::Hyper).unwrap();
 
             ctx.set_source_pixbuf(&scaled, 0., 0.);
+            ctx.set_source_rgba(1.0, 0., 0., 1.);
             ctx.fill();
+
         }
     }
 
@@ -87,6 +94,7 @@ mod imp {
     impl ObjectImpl for FillImage {
         fn constructed(&self, obj: &Self::Type) {
             self.parent_constructed(obj);
+            //self.btn.set_parent(obj);
             self.area.set_parent(obj);
             self.area.set_hexpand(true);
             self.area.set_vexpand(true);
@@ -95,12 +103,13 @@ mod imp {
 
         fn dispose(&self, _: &Self::Type) {
             self.area.unparent();
+            //self.btn.unparent();
         }
     }
 
     impl WidgetImpl for FillImage {
         fn get_request_mode(&self, _: &Self::Type) -> gtk::SizeRequestMode {
-            self.area.get_request_mode()
+            self.area.request_mode()
         }
 
         fn size_allocate(
@@ -111,6 +120,7 @@ mod imp {
             baseline: i32,
         ) {
             self.area.allocate(width, height, baseline, None);
+            // self.btn.allocate(width, height, baseline, None);
         }
 
         fn measure(

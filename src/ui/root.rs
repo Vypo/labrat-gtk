@@ -84,10 +84,10 @@ impl Root {
 
 impl Wrap<Root> {
     fn pop(&self) {
-        if let Some(child) = self.stack.get_visible_child() {
+        if let Some(child) = self.stack.visible_child() {
             self.stack.remove(&child);
-            let pages = self.stack.get_pages();
-            let len = pages.get_n_items();
+            let pages = self.stack.pages();
+            let len = pages.n_items();
 
             if len <= 1 {
                 self.back_action.set_enabled(false);
@@ -105,7 +105,7 @@ impl Wrap<Root> {
     {
         self.stack.add_child(child);
         self.stack.set_visible_child(child);
-        if self.stack.get_pages().get_n_items() > 1 {
+        if self.stack.pages().n_items() > 1 {
             self.back_action.set_enabled(true);
         }
     }
